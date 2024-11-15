@@ -6,29 +6,35 @@ import CardContent from '@mui/material/CardContent';
 import CardMedia from '@mui/material/CardMedia';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
+import { ProductType } from '@src/app/types/types';
 
-export default function MediaCard() {
+interface CardProps {
+  product: ProductType;
+}
+
+const MediaCard: React.FC<CardProps> = ({ product }) => {
   return (
-    <Card sx={{ maxWidth: 345 }}>
+    <Card>
       <CardMedia
         component="img"
-        alt="green iguana"
+        alt="image"
         height="140"
-        image="/static/images/cards/contemplative-reptile.jpg"
+        image="/product.jpg"
       />
       <CardContent>
         <Typography gutterBottom variant="h5" component="div">
-          Lizard
+          {product?.name}
         </Typography>
         <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-          Lizards are a widespread group of squamate reptiles, with over 6,000
-          species, ranging across all continents except Antarctica
+          {product?.description}
         </Typography>
       </CardContent>
       <CardActions>
-        <Button size="small">Share</Button>
-        <Button size="small">Learn More</Button>
+        <Button size="small">Stock: {product?.stock}</Button>
+        <Button size="small">Add To Card</Button>
       </CardActions>
     </Card>
   );
 }
+
+export default MediaCard;
