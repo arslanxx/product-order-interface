@@ -9,6 +9,9 @@ import Typography from '@mui/material/Typography';
 import InputBase from '@mui/material/InputBase';
 import MenuIcon from '@mui/icons-material/Menu';
 import SearchIcon from '@mui/icons-material/Search';
+import { getData, saveData } from '@src/helper/helper';
+import { ProductType } from '@src/types/types';
+import { PRODUCTS_DATA } from '@src/constants/constants';
 
 const Search = styled('div')(({ theme }) => ({
   position: 'relative',
@@ -52,7 +55,35 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
   },
 }));
 
-export default function SearchAppBar() {
+interface SearchAppBarProps {
+  handleProductupdate: (product: ProductType[]) => void; // Adjust the parameter type as needed
+}
+
+export default function SearchAppBar({ handleProductupdate }: SearchAppBarProps) {
+
+  const [search, setSearch] = React.useState('');
+  React.useEffect(() => {
+    const searchValue = localStorage.getItem('search') || ''; // Default to an empty string if null
+    setSearch(searchValue);
+  }, []);
+
+  const handleSearch = (value: string) => {
+    if (value?.length > 0) {
+      setSearch(value);
+      // const products = PRODUCTS_DATA;
+      const filteredProducts = PRODUCTS_DATA.filter((product: { name: string }) =>
+        product.name.toLowerCase().includes(value.toLowerCase())
+      );
+      handleProductupdate(filteredProducts);
+      saveData('products', filteredProducts);
+      localStorage.setItem('search', value);    
+    }
+    else {
+      handleProductupdate(PRODUCTS_DATA)
+      saveData('products', PRODUCTS_DATA)
+    }
+
+  }
   return (
     <Box sx={{ flexGrow: 1 }}>
       <AppBar position="static">
@@ -81,6 +112,8 @@ export default function SearchAppBar() {
             <StyledInputBase
               placeholder="Search…"
               inputProps={{ 'aria-label': 'search' }}
+              onChange={(event) => handleSearch(event.target.value)}
+              value={search}
             />
           </Search>
         </Toolbar>
