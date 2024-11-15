@@ -6,7 +6,7 @@ import CardContent from '@mui/material/CardContent';
 import CardMedia from '@mui/material/CardMedia';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
-import { ProductType } from '@src/app/types/types';
+import { ProductType } from '@src/types/types';
 
 interface CardProps {
   product: ProductType;
