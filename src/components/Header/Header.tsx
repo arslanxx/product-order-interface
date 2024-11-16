@@ -1,17 +1,18 @@
 "use client";
-import * as React from 'react';
-import { styled, alpha } from '@mui/material/styles';
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import SearchIcon from '@mui/icons-material/Search';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
-import Toolbar from '@mui/material/Toolbar';
 import IconButton from '@mui/material/IconButton';
-import Typography from '@mui/material/Typography';
 import InputBase from '@mui/material/InputBase';
-import MenuIcon from '@mui/icons-material/Menu';
-import SearchIcon from '@mui/icons-material/Search';
+import { alpha, styled } from '@mui/material/styles';
+import Toolbar from '@mui/material/Toolbar';
+import Typography from '@mui/material/Typography';
+import { PRODUCTS_DATA } from '@src/constants/constants';
 import { getData, saveData } from '@src/helper/helper';
 import { ProductType } from '@src/types/types';
-import { PRODUCTS_DATA } from '@src/constants/constants';
+import * as React from 'react';
+import { Drawer } from '..';
 
 const Search = styled('div')(({ theme }) => ({
   position: 'relative',
@@ -57,33 +58,63 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 
 interface SearchAppBarProps {
   handleProductupdate: (product: ProductType[]) => void; // Adjust the parameter type as needed
+  cartItems: ProductType[];
+  removeCart: () => void
 }
 
-export default function SearchAppBar({ handleProductupdate }: SearchAppBarProps) {
+export default function SearchAppBar({ handleProductupdate, cartItems, removeCart }: SearchAppBarProps,) {
+  const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
+
+  const toggleDrawer = (open: boolean) => {
+    setIsDrawerOpen(open);
+  };
+
 
   const [search, setSearch] = React.useState('');
   React.useEffect(() => {
-    const searchValue = localStorage.getItem('search') || ''; // Default to an empty string if null
+    const searchValue = getData('search') || ''; // Default to an empty string if null
     setSearch(searchValue);
   }, []);
 
   const handleSearch = (value: string) => {
-    if (value?.length > 0) {
-      setSearch(value);
-      // const products = PRODUCTS_DATA;
-      const filteredProducts = PRODUCTS_DATA.filter((product: { name: string }) =>
+    const productsFromStorage = getData('products');
+    setSearch(value);
+    saveData("search", value)
+    if ('product'.includes(value)) {
+      const updatedProducts = PRODUCTS_DATA.map((product: ProductType) => {
+        // Find the matching product in PRODUCTS_DATA
+        const matchingProduct = productsFromStorage.find((p: ProductType) => p.id === product.id);
+    
+        // If a match is found, update the stock
+        if (matchingProduct) {
+          return {
+            ...product,
+            stock: matchingProduct.stock, // Update stock from PRODUCTS_DATA
+          };
+        }
+    
+        // If no match is found, keep the original product data
+        return product;
+      });
+      handleProductupdate(updatedProducts);
+    }
+    else if (value?.length > 0) {
+      const filteredProducts = productsFromStorage.filter((product: ProductType) =>
         product.name.toLowerCase().includes(value.toLowerCase())
       );
       handleProductupdate(filteredProducts);
-      saveData('products', filteredProducts);
-      localStorage.setItem('search', value);    
     }
     else {
-      handleProductupdate(PRODUCTS_DATA)
-      saveData('products', PRODUCTS_DATA)
+      setSearch('');
+      saveData("search", '');
+      handleProductupdate(productsFromStorage)
     }
+}
 
-  }
+  const handleOpenDrawer = () => {
+    setIsDrawerOpen(true);
+  };
+
   return (
     <Box sx={{ flexGrow: 1 }}>
       <AppBar position="static">
@@ -94,8 +125,9 @@ export default function SearchAppBar({ handleProductupdate }: SearchAppBarProps)
             color="inherit"
             aria-label="open drawer"
             sx={{ mr: 2 }}
+            onClick={handleOpenDrawer}
           >
-            <MenuIcon />
+            <ShoppingCartIcon />
           </IconButton>
           <Typography
             variant="h6"
@@ -118,6 +150,7 @@ export default function SearchAppBar({ handleProductupdate }: SearchAppBarProps)
           </Search>
         </Toolbar>
       </AppBar>
+      <Drawer open={isDrawerOpen} onClose={() => toggleDrawer(false)} cartItems={cartItems} removeCart={removeCart} />
     </Box>
   );
 }
